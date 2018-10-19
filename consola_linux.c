@@ -19,7 +19,7 @@ COMANDOS comandos[] =
 };
 
 void logConsola(){
-	log_consola = log_create("consola_cami.log"," Soy la Consola de Cam :) ",true,LOG_LEVEL_TRACE);
+	log_consola = log_create("terminal.log","Terminal de Cam :)",true,LOG_LEVEL_TRACE);
 }
 char *dupstr (int s){
   char *r;
@@ -29,17 +29,31 @@ char *dupstr (int s){
 }
 
 void memoria(){
-	lineas = malloc(l_syscom*(sizeof(char)));
-	argumentos= malloc(l_syscom* (sizeof(char)));
-	syscom = malloc((sizeof(char))*l_syscom);
+	lineas = malloc(1024);
+	argumentos= malloc(1024);
+	syscom = malloc(1024);
+	done = 0;
 }
-
+void eliminarEstructura(COMANDOS *com){
+	free(com->nombre);
+	free(com->funcion);
+	free(com->docExtra);
+	free(com);
+}
+void chauMemoria(){
+	  free(syscom);
+	  //free(lineas);
+	  free(argumentos);
+	  //free(nombre_programa);
+	  eliminarEstructura(comando);
+	  log_trace(log_consola, "Saliendo de la terminal CAM \n");
+	 // log_destroy(log_consola);
+}
 int ejecutar_linea (char* line){
-  register int i;
-  COMANDOS *comando;
+  register int i = 0;
+
   char *word;
-  /* Isolate the comando word. */
-  i = 0;
+
   while (line[i] && whitespace(line[i]))
     i++;
   word = line + i;
@@ -54,9 +68,9 @@ int ejecutar_linea (char* line){
 
   if (!comando){
       /*fprintf ();
-      //loggear(log, "LOG_LEVEL_WARNING"," %s: No such comando for FileMan. %s \n", word);*/
-      log_warning(log_consola,"%s: No such comando for FileMan. %s \n ",word);/*
-      //log_debug(log,("<%s>: No such comando for FileMan. <%s> \n ",stderr,  word) );*/
+      //loggear(log, "LOG_LEVEL_WARNING"," %s: No such comando for terminalCami. %s \n", word);*/
+      log_warning(log_consola,"%s: No such comando for terminalCami. %s \n ",word);/*
+      //log_debug(log,("<%s>: No such comando for terminalCami. <%s> \n ",stderr,  word) );*/
       return (-1);
     };
 
@@ -91,16 +105,15 @@ char* stripwhite (char* string){
     t--;
   *++t = '\0';
 
-  free(t);
   return(s);
 }
 
 void initialize_readline(){
   /* Allow conditional parsing of the ~/.inputrc file. */
-  rl_readline_name = "Hola Cami: ";
+  rl_readline_name = "terminalCami";
 
 
-  rl_attempted_completion_function = (CPPFunction *)completar_nombre();
+  rl_attempted_completion_function = (CPPFunction *)completar_nombre;
 }
 
 char **completar_nombre(char* text, int start, int end){
@@ -108,7 +121,7 @@ char **completar_nombre(char* text, int start, int end){
 
   matches = (char **)NULL;
   if (start == 0){
-    matches = completion_matches (text, comando_generador);
+    matches = completion_matches(text, comando_generador);
   };
 
   return (matches);
@@ -116,19 +129,19 @@ char **completar_nombre(char* text, int start, int end){
 
 char* comando_generador (char* text, int state){
   static int list_index, len;
-  char *nombre_nuevo;
+  char *nombre;
 
   if (!state){
       list_index = 0;
       len = strlen(text);
     };
 
-  while (nombre_nuevo = comandos[list_index].nombre){
+  while (nombre = comandos[list_index].nombre){
       list_index++;
 
-      if (strncmp (nombre_nuevo, text, len) == 0){
-        return (dupstr(nombre_nuevo));
-      };
+      if (strncmp (nombre, text, len) == 0)
+        return (dupstr(nombre));
+
     };
 
 
@@ -137,12 +150,12 @@ char* comando_generador (char* text, int state){
 
 /* **************************************************************** */
 /*                                                                  */
-/*                       FileMan comandos                           */
+/*                       terminalCami comandos                      */
 /*                                                                  */
 /* **************************************************************** */
 
 
-void* com_lista (char* arg){
+int com_lista (char* arg){
   if (!arg)
     arg = "";
 
@@ -179,12 +192,12 @@ int com_estado (char* arg){
     }
 
   printf ("Estadísticas `%s':\n", arg);
-  log_info(log_consola,"Estadísticas `%s':\n", arg);
   printf ("%s has %d link%s, and is %d byte%s in length.\n", arg,
 	  	  finfo.st_nlink,
           (finfo.st_nlink == 1) ? "" : "s",
           finfo.st_size,
           (finfo.st_size == 1) ? "" : "s");
+  log_info(log_consola,"Estadísticas `%s':\n", arg);
   log_info(log_consola, "%s has %d link%s, and is %d byte%s in length.\n", arg,
       finfo.st_nlink,
       (finfo.st_nlink == 1) ? "" : "s",
@@ -192,11 +205,11 @@ int com_estado (char* arg){
       (finfo.st_size == 1) ? "" : "s");
 
   printf ("\n Inode último cambio at: %s", ctime (&finfo.st_ctime));
-  log_trace(log_consola,"\n Inode último cambio at: %s", ctime (&finfo.st_ctime));
-
   printf ("\n Último acceso at: %s", ctime (&finfo.st_atime));
-  log_trace(log_consola,"\n Último acceso at: %s", ctime (&finfo.st_atime));
   printf ("\n Última modificación at: %s", ctime (&finfo.st_mtime));
+
+  log_trace(log_consola,"\n Inode último cambio at: %s", ctime (&finfo.st_ctime));
+  log_trace(log_consola,"\n Último acceso at: %s", ctime (&finfo.st_atime));
   log_trace(log_consola,"\n Última modificación at: %s", ctime (&finfo.st_mtime));
   return (0);
 }
@@ -220,7 +233,7 @@ int com_ayuda (char* arg){
     }
 
   if (!printed){
-      printf ("No comandos match `%s'.  Possibilties are:\n", arg);
+      printf ("Comandos no encontrado `%s'.  Las posibilidades son:\n", arg);
 
       for (i = 0; comandos[i].nombre; i++){
 
@@ -252,8 +265,8 @@ int com_cd(char *arg){
 
 /* Print out the current working directory. */
 int com_pwd (char* ignore){
-  char* dir = calloc(100, sizeof(char));
-  char* s = calloc(100, (sizeof(char)+2));
+  char* dir = malloc(l_syscom);
+  char* s = malloc((sizeof(dir))+2);
 
   s = getwd(dir);
   if (s == 0) {
@@ -264,16 +277,18 @@ int com_pwd (char* ignore){
       return (EXIT_FAILURE);
     };
 
-  printf ("Current directory is %s\n", dir);
-  free(dir);
+  printf ("Directorio actual es %s\n", dir);
+  log_info(log_consola,"Directorio actual es %s\n", dir);
+
   free(s);
+  free(dir);
   return (0);
 }
 
 /* The user wishes to quit using this program.  Just set DONE non-zero. */
 int com_salir (char* arg){
   done = 1;
-  log_trace(log_consola, "Saliendo de la terminal CAM \n");
+  //chauMemoria();
   return (0);
 }
 

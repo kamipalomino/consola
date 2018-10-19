@@ -19,11 +19,12 @@ int main (int argc, char** argv){
 
   initialize_readline();
 
-  for ( ; done == 0; ){
+  while(done != 1){
 	  lineas = readline("Hola Cami: ");
-
       if (!lineas){
     	  log_error(log_consola,"AlgoSalioMal");
+    	  //chauMemoria();
+    	  done = 1;
     	  break;
       };
 
@@ -36,7 +37,6 @@ int main (int argc, char** argv){
 
       free (lineas);
     };
-  free(argumentos);
-  log_destroy(log_consola);
+  //chauMemoria();
   exit (0);
 }

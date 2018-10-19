@@ -23,7 +23,7 @@
 #include <commons/string.h>
 #include <commons/collections/dictionary.h>
 #include <commons/error.h>
-
+#include <unistd.h>
 
 /***********ESTRUCTURAS**************/
 #define l_syscom 1024
@@ -34,19 +34,21 @@ typedef struct {
   char *docExtra;
 } COMANDOS;
 
-extern char *getwd ();
-extern char *xmalloc ();
+
+extern char *xmalloc();
 char *nombre_programa;
 t_log* log_consola;
 int done;
 char* lineas;
 char* argumentos;
 char* syscom;
+COMANDOS *comando;
 /***********FUNCIONES************/
 
+void eliminarEstructura(COMANDOS *com);
 void memoria();
 void logConsola();
-void* com_lista(char* argumento);
+int com_lista(char* argumento);
 int com_ver (char* argumento);
 int com_renombrar(char* argumento);
 int com_estado(char* argumento);
@@ -61,8 +63,8 @@ COMANDOS* buscar_comando (char *nombre);
 int ejecutar_linea (char* line);
 int argumentos_validos(char *caller, char* arg);
 char *comando_generador();
-char **completar_nombre();
+char **completar_nombre(char* text, int start, int end);
 void initialize_readline();
-
+void chauMemoria();
 
 #endif /* CONSOLA_LINUX_H_ */
