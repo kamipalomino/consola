@@ -34,7 +34,6 @@ void memoria(){
 	syscom = malloc((sizeof(char))*l_syscom);
 }
 
-/* Execute a comando line. */
 int ejecutar_linea (char* line){
   register int i;
   COMANDOS *comando;
@@ -66,7 +65,6 @@ int ejecutar_linea (char* line){
 
   word = line + i;
 
-  /* Call the function. */
   return ((*(comando->funcion)) (word));
 }
 
@@ -97,18 +95,14 @@ char* stripwhite (char* string){
   return(s);
 }
 
-void* initialize_readline(){
+void initialize_readline(){
   /* Allow conditional parsing of the ~/.inputrc file. */
-  rl_readline_name = "Terminal de Cam";
+  rl_readline_name = "Hola Cami: ";
 
-  /* Tell the completer that we want a crack first. */
+
   rl_attempted_completion_function = (CPPFunction *)completar_nombre();
 }
 
-/* Attempt to complete on the contents of TEXT.  START and END show the
-   region of TEXT that contains the word to complete.  We can use the
-   entire line in case we want to do some simple parsing.  Return the
-   array of matches, or NULL if there aren't any. */
 char **completar_nombre(char* text, int start, int end){
   char **matches;
 
@@ -137,7 +131,7 @@ char* comando_generador (char* text, int state){
       };
     };
 
-  /* If no nombres matched, then return NULL. */
+
   return ((char *)NULL);
 }
 

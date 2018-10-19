@@ -62,7 +62,7 @@ int ejecutar_linea (char* line);
 int argumentos_validos(char *caller, char* arg);
 char *comando_generador();
 char **completar_nombre();
-void* initialize_readline();
+void initialize_readline();
 
 
 #endif /* CONSOLA_LINUX_H_ */
